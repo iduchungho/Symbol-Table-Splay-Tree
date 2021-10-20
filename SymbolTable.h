@@ -1,31 +1,16 @@
 #ifndef SYMBOLTABLE_H
 #define SYMBOLTABLE_H
 #include "main.h"
-struct _function{
-    string type1 , var1;
-    string type2 , var2;
-    string returnType;
-    _function()
-        :type1(""), var1(""), type2(""), var2(""), returnType(""){}
-};
 struct Node{
     string var;
     string type;
-    _function func;
-    bool gloScope;
-    bool isfunc;
-    Node(string v , string t , bool scope)
-        : var(v), type(t), gloScope(scope), isfunc(0){}
-    Node(string v, string type1 , string type2 , string returnType){
-        this->var = v;
-        this->func.type1 = type1;
-        this->func.type2 = type2;
-        this->func.returnType = returnType;
-        this->isfunc = 1;
-    }
+    string ndata;
+    string funcTypeReturn;
+    int levelOfBlock;
+    Node(string v , string t)
+        : var(v), type(t){}
     Node(){
-        this->gloScope = true;
-        this->isfunc = 0;
+        this->levelOfBlock = 0;
     }
 };
 struct TreeNode{
@@ -33,8 +18,8 @@ struct TreeNode{
     TreeNode* parent;
     TreeNode* left;
     TreeNode* right;
-    TreeNode(Node k , TreeNode* p, TreeNode* l , TreeNode* r){
-        this->key = k;
+    TreeNode(Node *k , TreeNode* p = nullptr, TreeNode* l = nullptr , TreeNode* r = nullptr){
+        this->key = *k;
         this->parent = p;
         this->left = l;
         this->right = r;
@@ -54,13 +39,16 @@ private:
     void zig_zag(TreeNode*);
     void zig_zig(TreeNode*);
 
-    void splay(TreeNode*);
+    void splay(TreeNode* ,int &);
+
 public:
+    SplayTree();
+    SplayTree(TreeNode*);
     void inpRoot(TreeNode*);
     TreeNode* returnRoot();
-    void find(TreeNode* , const Node&);
+    TreeNode* find(const string& , const int& , int& , int&);
     void _delete(TreeNode* , const Node&);
-    void insert(TreeNode* , const Node&);
+    void insert(Node* , int& , int& , const string&);
     void print(TreeNode*);
 
 };
@@ -69,10 +57,11 @@ class SymbolTable
 public:
     SymbolTable() {}
     void run(string filename);
-    void INSERT(string &);
-    void ASSIGN(string &);
-    void LOOKUP(string &);
-    void PRINT(string &);
+    void INSERT(string & ,const int & ,const string &, SplayTree&);
+    void ASSIGN(string & , const int&  ,const string &, SplayTree&);
+    void LOOKUP(string & , SplayTree&);
+    void PRINT(string & , SplayTree&);
+    bool functionType(const string &  , const int& , int& , int&, SplayTree&);
 };
 void DestroySplayTree(TreeNode*);
 void cSyntaxLine(const string &);
@@ -80,4 +69,5 @@ string cutString(string &, const string&);
 TreeNode* newTreeNode(TreeNode*);
 bool const_number(const string &);
 bool const_string(const string &);
+void cAphabet (const string & ,const string &);
 #endif

@@ -5,9 +5,6 @@ TreeNode* newTreeNode(TreeNode* root){
     }
     return root;
 }
-void DestroySplayTree(TreeNode* root){
-
-}
 void cSyntaxLine(const string &line){
     int size_ = line.length();
     int space = 0;
@@ -58,6 +55,20 @@ bool const_string(const string &string){
     else return false;
     return true;
 }
+void cAphabetSyntax (const string &line , const string& error){
+    if(line[0] < 65 || (line[0] > 90 && line[0] < 97) || line[0] > 122)
+        throw InvalidInstruction(error);
+
+    int size_ = line.length();
+
+    for(int j = 1; j < size_  ; ++j){
+        if(line[j] == 95) continue;
+        else if(line[j] < 48 || (line[j] > 57 && line[j] < 65)
+                ||(line[j] > 90 && line[j] < 97) || line[j] > 122){
+            throw InvalidInstruction(error);
+        }
+    }
+}
 void SplayTree::zig(TreeNode* current){
 
     /*
@@ -72,7 +83,7 @@ void SplayTree::zig(TreeNode* current){
     */
 
     TreeNode* p = current->parent;
-    if(p->left = current){
+    if(p->left == current){
         TreeNode* A = current->left;
         TreeNode* B = current->right;
         TreeNode* C = p -> right;
@@ -119,7 +130,7 @@ void SplayTree::zig_zag(TreeNode* current){
         grand -> left = C;
 
         if(current -> parent){
-            if(current -> parent -> left == current)
+            if(current -> parent -> left == grand)
                 current -> parent -> left = current;
             else current -> parent -> right = current;
         }
@@ -128,10 +139,10 @@ void SplayTree::zig_zag(TreeNode* current){
 
     }
     else{ // zag zig
-        TreeNode* A = par->left;
+        TreeNode* A = grand->left;
         TreeNode* B = current->left;
         TreeNode* C = current->right;
-        TreeNode* D = grand->right;
+        TreeNode* D = par->right;
 
         current -> parent = grand->parent;
         current -> left = grand;
@@ -144,7 +155,7 @@ void SplayTree::zig_zag(TreeNode* current){
         par->parent = current;
 
         if(current -> parent){
-            if(current -> parent -> left == current)
+            if(current -> parent -> left == grand)
                 current -> parent -> left = current;
             else current -> parent -> right = current;
         }
@@ -157,9 +168,9 @@ void SplayTree::zig_zig(TreeNode* current){
     TreeNode* par = current->parent;
     TreeNode* grand = par->parent;
     if(par -> left == current){ // zig zig
-        TreeNode* A = par->left;
-        TreeNode* B = current->left;
-        TreeNode* C = current->right;
+        TreeNode* A = current->left;
+        TreeNode* B = current->right;
+        TreeNode* C = par->right;
         TreeNode* D = grand->right;
 
         current -> parent = grand->parent;
@@ -173,7 +184,7 @@ void SplayTree::zig_zig(TreeNode* current){
         grand->left = C;
 
         if(current -> parent){
-            if(current -> parent -> left == current)
+            if(current -> parent -> left == grand)
                 current -> parent -> left = current;
             else current -> parent -> right = current;
         }
@@ -182,10 +193,10 @@ void SplayTree::zig_zig(TreeNode* current){
 
     }
     else{ // zag zag
-        TreeNode* A = par->left;
-        TreeNode* B = current->left;
-        TreeNode* C = current->right;
-        TreeNode* D = grand->right;
+        TreeNode* A = grand->left;
+        TreeNode* B = par->left;
+        TreeNode* C = current->left;
+        TreeNode* D = current->right;
 
         current -> parent = grand->parent;
         current -> left = par;
@@ -198,7 +209,7 @@ void SplayTree::zig_zig(TreeNode* current){
         grand->right = B;
 
         if(current -> parent){
-            if(current -> parent -> left == current)
+            if(current -> parent -> left == grand)
                 current -> parent -> left = current;
             else current -> parent -> right = current;
         }
@@ -207,25 +218,227 @@ void SplayTree::zig_zig(TreeNode* current){
 
     }
 }
-void SplayTree::find(TreeNode* root , const Node& element){
-
-}
-void SplayTree::_delete(TreeNode* root , const Node& element){
-
-}
-void SplayTree::insert(TreeNode* root , const Node& element){
-
-}
-void SplayTree::print(TreeNode* root){
-
-}
 void SplayTree::inpRoot(TreeNode* root){
     this->root = root;
 }
 TreeNode* SplayTree::returnRoot(){
     return this->root;
 }
-void SplayTree::splay(TreeNode* root){
+SplayTree::SplayTree(){
+    this->root = NULL;
+}
+SplayTree::SplayTree(TreeNode* rt){
+    this->root = rt;
+}
+void DestroySplayTree(TreeNode* root){
+
+}
+TreeNode* SplayTree::find(const string& element, const int& level , int& num_comp , int& num_splay){
+    TreeNode* cur = this->root;
+    TreeNode* ret = nullptr;
+    while(cur){
+        if(level < cur->key.levelOfBlock){
+            ++num_comp;
+            cur = cur->left;
+        }
+        else if(level > cur->key.levelOfBlock){
+            ++num_comp;
+            cur = cur->right;
+        }
+        else{
+            if(element < cur->key.var){
+                ++num_comp;
+                cur = cur->left;
+            }
+            else if(element > cur->key.var){
+                ++num_comp;
+                cur = cur->right;
+            }
+            else{
+                ++num_comp;
+                ret = cur;
+                break;
+            }
+            
+        }
+    }
+    //int num_splay = 0;
+    if(ret) splay(ret, num_splay);
+    return ret;
+
+}
+void SplayTree::_delete(TreeNode* root , const Node& element){
+
+}
+void SplayTree::insert(Node* element , int& num_comp , int& num_splay , const string& error){
+    if(!root){
+        root = new TreeNode(element);
+        return;
+    }
+    TreeNode* cur = this->root;
+    while(cur){
+        if(element->levelOfBlock < cur ->key.levelOfBlock){
+            ++num_comp;
+            if(!cur->left){
+                TreeNode* newNode = new TreeNode(element);
+                cur->left = newNode;
+                newNode->parent = cur;
+                splay(newNode , num_splay);
+                return;
+            }
+            else cur = cur->left;
+        }
+        else if (element->levelOfBlock > cur ->key.levelOfBlock){
+            ++num_comp;
+            if(!cur->right){
+                TreeNode* newTNode = new TreeNode(element);
+                cur->right = newTNode;
+                newTNode->parent = cur;
+                splay(newTNode , num_splay);
+                return;
+            }
+            else cur = cur->right;
+        }
+        else{
+
+            if(element->var.compare(cur->key.var) < 0){
+                ++num_comp;
+                if(!cur->left){
+                    TreeNode* newTNode = new TreeNode(element);
+                    cur->left = newTNode;
+                    newTNode->parent = cur;
+                    splay(newTNode , num_splay);
+                    return;
+                }
+                else cur = cur->left;
+            }
+            else if (element->var.compare(cur->key.var) > 0){
+                ++num_comp;
+                if(!cur->right){
+                    TreeNode* newTNode = new TreeNode(element);
+                    cur->right = newTNode;
+                    newTNode->parent = cur;
+                    splay(newTNode , num_splay);
+                    return;
+                }
+                else cur = cur->right;
+            }
+            else{
+                ++num_comp;
+                throw Redeclared(error);
+                //++num_comp;
+                splay(cur , num_splay);
+                return;
+            }
+        }
+    }
+}
+void SplayTree::print(TreeNode* root){
+
+}
+void SplayTree::splay(TreeNode* cur , int& num_splay){
+    while(cur->parent){
+        TreeNode* p = cur->parent;
+        TreeNode* g = p->parent;
+        if(!g) zig(cur);
+        else if(g->left == p && p->left == cur) zig_zig(cur);
+        else if(g->right == p && p->right == cur) zig_zig(cur);
+        else zig_zag(cur);
+    }
+    if(cur != this->root) ++num_splay;
+    this->root = cur;
+}
+void SymbolTable::INSERT(string& line ,const int &level, const string & error, SplayTree& data){
+    string identifier_name = cutString(line ," ");
+    string type = cutString(line ," ");// check syntax
+    string _static = cutString(line ," "); // check syntax
+    bool isStatic = 1;
+
+    if(_static == "true") isStatic = 1;
+    else if(_static == "false") isStatic = 0;
+
+    int num_comp = 0;
+    int num_splay = 0;
+
+    cAphabetSyntax(identifier_name , error);
+    Node* newNode;
+
+    if(type[0] == '('){
+        if(!isStatic && level != 0) throw InvalidDeclaration(error);
+
+        string retype;
+        size_t f = type.find("->");
+        if(f != string::npos){
+            retype = type.substr(f + 2, type.length());
+            type.erase(f , type.length());
+        }
+
+        newNode = new Node(identifier_name , type);
+        newNode->funcTypeReturn = retype;
+        if(isStatic) newNode->levelOfBlock = 0;
+        else newNode->levelOfBlock = level;
+    }
+    else{
+        newNode = new Node(identifier_name , type);
+        if(isStatic) newNode->levelOfBlock = 0;
+        else newNode->levelOfBlock = level;
+    }
+
+    data.insert(newNode , num_comp , num_splay , error);
+    delete newNode;
+
+    cout << num_comp << " " << num_splay << endl;
+}
+bool SymbolTable::functionType(const string& line , const int& level ,int& num_comp , int& num_splay , SplayTree& data){
+    
+    string curline = line;
+    string identifier_name = cutString(curline ," ");
+    string value = cutString(curline ," ");
+    string funcName;
+
+    size_t f = value.find("(");
+    if(f != string::npos){
+        funcName = value.substr(f);
+        value.erase(0 , f);
+    }
+
+    TreeNode* is_found = data.find(funcName , level , num_comp , num_splay);
+    if(!is_found) return 0;
+
+    string fVarName = value;
+    string fTypeName = is_found->key.type;
+    string funcTypeRet = is_found->key.funcTypeReturn;
+    return 1;
+}
+void SymbolTable::ASSIGN(string& line, const int& level, const string& error , SplayTree& data){
+    string identifier_name = cutString(line ," ");
+    string value = cutString(line ," ");
+
+    // TreeNode* is_found = data.find(identifier_name, level);
+    // if(!is_found) throw Undeclared(error);
+
+    int num_comp = 0;
+    int num_splay = 0;
+
+    if(value.back() != ')'){
+        TreeNode* is_found = data.find(identifier_name, level , num_comp , num_splay);
+        if(!is_found) throw Undeclared(error);
+
+        if(is_found->key.type == "string" && const_string(value)) is_found->key.ndata = value;
+        else if(is_found->key.type == "number" && const_number(value)) is_found->key.ndata = value;
+        else throw TypeMismatch(error);
+    }
+    else{
+        functionType(line , level , num_comp, num_splay , data);
+    }
+
+
+    cout << num_comp << " " << num_splay << endl;
+}
+void SymbolTable::LOOKUP(string& line , SplayTree& data){
+
+}
+void SymbolTable::PRINT(string& line , SplayTree& data){
 
 }
 void SymbolTable::run(string filename){
@@ -234,11 +447,30 @@ void SymbolTable::run(string filename){
     fstream file;
     Database.inpRoot(nullptr); // root = new TreeNode; root->key(abc ,xyz ,gmt);
     string error;
+    int level = 0;
     file.open(filename , ios::in);
     while(!file.eof()){
         getline(file, line);
         cSyntaxLine(line);
         error = line;
+
+        string TYPE = cutString(line , " ");
+
+        if(TYPE == "INSERT"){
+            INSERT(line, level , error, Database);
+        }
+        else if(TYPE == "ASSIGN"){
+            ASSIGN(line , level, error, Database);
+        }
+        else if(TYPE == "LOOKUP"){
+
+        }
+        else if(TYPE == "BEGIN"){
+
+        }
+        else if(TYPE == "END"){
+
+        }
     }
     file.close();
     DestroySplayTree(Database.returnRoot());

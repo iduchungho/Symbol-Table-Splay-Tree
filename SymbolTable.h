@@ -7,6 +7,7 @@ struct Node{
     string ndata;
     string funcTypeReturn;
     int levelOfBlock;
+    bool isGlobal = 0;
     Node(string v , string t)
         : var(v), type(t){}
     Node(){
@@ -47,9 +48,10 @@ public:
     void inpRoot(TreeNode*);
     TreeNode* returnRoot();
     TreeNode* find(const string& , const int& , int& , int&);
-    void _delete(TreeNode* , const Node&);
+    TreeNode* find(const int&);
+    bool _delete(const int&);
     void insert(Node* , int& , int& , const string&);
-    void print(TreeNode*);
+    void print(TreeNode* , bool);
 
 };
 class SymbolTable
@@ -59,15 +61,19 @@ public:
     void run(string filename);
     void INSERT(string & ,const int & ,const string &, SplayTree&);
     void ASSIGN(string & , const int&  ,const string &, SplayTree&);
-    void LOOKUP(string & , SplayTree&);
-    void PRINT(string & , SplayTree&);
-    bool functionType(const string &  , const int& , int& , int&, SplayTree&);
+    void LOOKUP(string & , const int&  ,const string &, SplayTree&);
+    void PRINT(SplayTree&);
+    bool functionType(const string & , const string& , const int& , int& , int&, SplayTree&);
+    void searchLevel(const string& , const int& , SplayTree&);
+    TreeNode* findAll(const string&, const int& , int& , int& , SplayTree&);
 };
 void DestroySplayTree(TreeNode*);
-void cSyntaxLine(const string &);
+void cSyntaxLine(const string & , SplayTree&);
 string cutString(string &, const string&);
 TreeNode* newTreeNode(TreeNode*);
 bool const_number(const string &);
 bool const_string(const string &);
-void cAphabet (const string & ,const string &);
+void cAphabetSyntax(const string & ,const string & , SplayTree&);
+TreeNode* subtreeMax(TreeNode*);
+TreeNode* subtreeMin(TreeNode*);
 #endif

@@ -1,28 +1,56 @@
 #include "SymbolTable.h"
+void DestroySplayTree(TreeNode* root){
+    if(!root) return;
+    DestroySplayTree(root->left);
+    DestroySplayTree(root->right);
+    TreeNode* p = root;
+    delete p;
+}
+TreeNode* subtreeMax(TreeNode* root){
+    TreeNode* cur = root;
+    while(cur->right) cur = cur->right;
+    return cur;
+}
+TreeNode* subtreeMin(TreeNode* root){
+    TreeNode* cur = root;
+    while(cur->left) cur = cur->left;
+    return cur;
+}
 TreeNode* newTreeNode(TreeNode* root){
     if(!root){
         root = new TreeNode;
     }
     return root;
 }
-void cSyntaxLine(const string &line){
+void cSyntaxLine(const string &line , SplayTree &data){
     int size_ = line.length();
     int space = 0;
     string syntax = line;
     for(int i = 0; i < size_; i++){
         if(line[i] == ' ') ++space;
     }
-    if(space > 3)
+    if(space > 3){
+        DestroySplayTree(data.returnRoot());
         throw InvalidInstruction(line);
+    }
     syntax = cutString(syntax , " ");
     if(syntax == "INSERT"){
-        if(space != 3) throw InvalidInstruction(line);
+        if(space != 3) {
+            DestroySplayTree(data.returnRoot());
+            throw InvalidInstruction(line);
+        }
     }
     else if(syntax == "ASSIGN"){
-        if(space != 2) throw InvalidInstruction(line);
+        if(space != 2) {
+            DestroySplayTree(data.returnRoot());
+            throw InvalidInstruction(line);
+        }
     }
     else if(syntax == "PRINT" || syntax == "END" || syntax == "BEGIN" ){
-        if(space != 0) throw InvalidInstruction(line);
+        if(space != 0) {
+            DestroySplayTree(data.returnRoot());
+            throw InvalidInstruction(line);
+        }
     }
 }
 string cutString(string& line , const string& char_pos){
@@ -55,9 +83,11 @@ bool const_string(const string &string){
     else return false;
     return true;
 }
-void cAphabetSyntax (const string &line , const string& error){
-    if(line[0] < 65 || (line[0] > 90 && line[0] < 97) || line[0] > 122)
+void cAphabetSyntax (const string &line , const string& error , SplayTree& data){
+    if(line[0] < 65 || (line[0] > 90 && line[0] < 97) || line[0] > 122){
+        DestroySplayTree(data.returnRoot());
         throw InvalidInstruction(error);
+    }
 
     int size_ = line.length();
 
@@ -65,6 +95,7 @@ void cAphabetSyntax (const string &line , const string& error){
         if(line[j] == 95) continue;
         else if(line[j] < 48 || (line[j] > 57 && line[j] < 65)
                 ||(line[j] > 90 && line[j] < 97) || line[j] > 122){
+            DestroySplayTree(data.returnRoot());
             throw InvalidInstruction(error);
         }
     }
@@ -230,9 +261,6 @@ SplayTree::SplayTree(){
 SplayTree::SplayTree(TreeNode* rt){
     this->root = rt;
 }
-void DestroySplayTree(TreeNode* root){
-
-}
 TreeNode* SplayTree::find(const string& element, const int& level , int& num_comp , int& num_splay){
     TreeNode* cur = this->root;
     TreeNode* ret = nullptr;
@@ -267,7 +295,61 @@ TreeNode* SplayTree::find(const string& element, const int& level , int& num_com
     return ret;
 
 }
-void SplayTree::_delete(TreeNode* root , const Node& element){
+TreeNode* SplayTree::find(const int& level){
+    TreeNode* cur = this->root;
+    TreeNode* ret = nullptr;
+    while(cur){
+        if(level < cur->key.levelOfBlock){
+            //++num_comp;
+            cur = cur->left;
+        }
+        else if(level > cur->key.levelOfBlock){
+            //++num_comp;
+            cur = cur->right;
+        }
+        else{
+            ret = cur;
+            break;
+        }
+    }
+    int num_splay = 0;
+    if(ret) splay(ret, num_splay);
+    return ret;
+}
+bool SplayTree::_delete(const int& lev){
+    
+    TreeNode* del = nullptr;
+    del = find(lev);
+    if(!del) return 0;
+
+    TreeNode* L = del->left;
+    TreeNode* R = del->right;
+
+    if(!L && !R){
+        this->root = nullptr;
+    }
+    else if(!L){
+        TreeNode* cur = subtreeMin(R);
+        int a = 0;
+        splay(cur , a);
+    }
+    else if(!R){
+        TreeNode* cur = subtreeMax(L);
+        int a = 0;
+        splay(cur , a);
+    }
+    else{
+        TreeNode* M = subtreeMax(L);
+        int a = 0;
+        splay(M , a);
+        M->right = R;
+        R->parent = M;
+    }
+    if(del->parent->left == del) del->parent->left = nullptr;
+    else if(del->parent->right == del) del->parent->right = nullptr;
+    delete del;
+    return 1;
+
 
 }
 void SplayTree::insert(Node* element , int& num_comp , int& num_splay , const string& error){
@@ -325,6 +407,7 @@ void SplayTree::insert(Node* element , int& num_comp , int& num_splay , const st
             }
             else{
                 ++num_comp;
+                DestroySplayTree(this->root);
                 throw Redeclared(error);
                 //++num_comp;
                 splay(cur , num_splay);
@@ -333,8 +416,15 @@ void SplayTree::insert(Node* element , int& num_comp , int& num_splay , const st
         }
     }
 }
-void SplayTree::print(TreeNode* root){
-
+void SplayTree::print(TreeNode* root , bool f = 0){
+    if(!root) return;
+    if(f == 0){
+        f = 1;
+        cout << root->key.var << "//" << root->key.levelOfBlock;
+    }
+    else cout << " " << root->key.var << "//" << root->key.levelOfBlock;
+    print(root->left , f);
+    print(root->right , f);
 }
 void SplayTree::splay(TreeNode* cur , int& num_splay){
     while(cur->parent){
@@ -348,6 +438,8 @@ void SplayTree::splay(TreeNode* cur , int& num_splay){
     if(cur != this->root) ++num_splay;
     this->root = cur;
 }
+
+
 void SymbolTable::INSERT(string& line ,const int &level, const string & error, SplayTree& data){
     string identifier_name = cutString(line ," ");
     string type = cutString(line ," ");// check syntax
@@ -360,11 +452,14 @@ void SymbolTable::INSERT(string& line ,const int &level, const string & error, S
     int num_comp = 0;
     int num_splay = 0;
 
-    cAphabetSyntax(identifier_name , error);
+    cAphabetSyntax(identifier_name , error , data);
     Node* newNode;
 
     if(type[0] == '('){
-        if(!isStatic && level != 0) throw InvalidDeclaration(error);
+        if(!isStatic && level != 0) {
+            DestroySplayTree(data.returnRoot());
+            throw InvalidDeclaration(error);
+        }
 
         string retype;
         size_t f = type.find("->");
@@ -389,28 +484,104 @@ void SymbolTable::INSERT(string& line ,const int &level, const string & error, S
 
     cout << num_comp << " " << num_splay << endl;
 }
-bool SymbolTable::functionType(const string& line , const int& level ,int& num_comp , int& num_splay , SplayTree& data){
+bool SymbolTable::functionType(const string& line , const string& error, const int& level ,int& num_comp , int& num_splay , SplayTree& data){
     
     string curline = line;
     string identifier_name = cutString(curline ," ");
     string value = cutString(curline ," ");
+    string data_ = value;
     string funcName;
 
     size_t f = value.find("(");
     if(f != string::npos){
-        funcName = value.substr(f);
+        funcName = value.substr(0 , f);
         value.erase(0 , f);
     }
 
-    TreeNode* is_found = data.find(funcName , level , num_comp , num_splay);
-    if(!is_found) return 0;
+    TreeNode* find = data.find(funcName , level , num_comp , num_splay);
+
+    if(!find) {
+        DestroySplayTree(data.returnRoot());
+        throw Undeclared(error);
+    }
 
     string fVarName = value;
-    string fTypeName = is_found->key.type;
-    string funcTypeRet = is_found->key.funcTypeReturn;
+    string fTypeName = find->key.type;
+    string funcTypeRet = find->key.funcTypeReturn;
+
+    fVarName.erase(0 , 1);
+    fVarName.pop_back();
+    fTypeName.erase(0 , 1);
+    fTypeName.pop_back();
+
+    while(!fVarName.empty() && !fTypeName.empty()){
+        size_t fvar = fVarName.find(",");
+        size_t ftype = fTypeName.find(",");
+        if(fvar != string::npos && ftype != string::npos){
+
+            string var = fVarName.substr(0, fvar);
+            string type = fTypeName.substr(0 , ftype);
+
+            if(const_string(var) && type == "string") {
+
+                fVarName.erase(0 , fvar + 1);
+                fTypeName.erase(0 , ftype + 1);
+
+            }
+            else if(const_number(var) && type == "number") {
+
+                fVarName.erase(0 , fvar + 1);
+                fTypeName.erase(0 , ftype + 1);
+
+            }
+            else {
+                DestroySplayTree(data.returnRoot());
+                throw TypeMismatch(error);
+            }
+        }
+        else if(fvar != string::npos && ftype == string::npos){
+            DestroySplayTree(data.returnRoot());
+            throw TypeMismatch(error);
+        }
+        else if(fvar == string::npos && ftype != string::npos){
+            DestroySplayTree(data.returnRoot());
+            throw TypeMismatch(error);
+        }
+        else{
+
+            if(const_string(fVarName) && fTypeName== "string") {
+                fVarName.clear();
+                fTypeName.clear();
+            }
+            else if(const_number(fVarName) && fTypeName == "number") {
+                fVarName.clear();
+                fTypeName.clear();
+            }
+            else {
+                DestroySplayTree(data.returnRoot());
+                throw TypeMismatch(error);
+            }
+        }
+    }
+
+    TreeNode* findX = data.find(identifier_name, level , num_comp , num_splay);
+    if(!findX) {
+        DestroySplayTree(data.returnRoot());
+        throw Undeclared(error);
+    }
+
+    if(funcTypeRet == findX->key.type) {
+        findX->key.ndata = data_;
+    }
+    else {
+        DestroySplayTree(data.returnRoot());
+        throw TypeMismatch(error);
+    }
+
     return 1;
 }
 void SymbolTable::ASSIGN(string& line, const int& level, const string& error , SplayTree& data){
+    string constline =  line;
     string identifier_name = cutString(line ," ");
     string value = cutString(line ," ");
 
@@ -422,23 +593,67 @@ void SymbolTable::ASSIGN(string& line, const int& level, const string& error , S
 
     if(value.back() != ')'){
         TreeNode* is_found = data.find(identifier_name, level , num_comp , num_splay);
-        if(!is_found) throw Undeclared(error);
+        if(!is_found) {
+            is_found = findAll(identifier_name , level , num_comp , num_splay , data);
+            if(!is_found) {
+                DestroySplayTree(data.returnRoot());
+                throw Undeclared(error);
+            }
+        }
 
         if(is_found->key.type == "string" && const_string(value)) is_found->key.ndata = value;
         else if(is_found->key.type == "number" && const_number(value)) is_found->key.ndata = value;
-        else throw TypeMismatch(error);
+        else{
+
+            TreeNode* var2 = findAll(value , level , num_comp , num_splay , data);
+            if(!var2) {
+                DestroySplayTree(data.returnRoot());
+                throw Undeclared(error);
+            }
+            else{
+                if(is_found->key.type == "string" && var2->key.type == "string") is_found->key.ndata = var2->key.ndata;
+                else if(is_found->key.type == "number" && var2->key.type == "number") is_found->key.ndata = var2->key.ndata;
+            }
+        }
     }
     else{
-        functionType(line , level , num_comp, num_splay , data);
+        functionType(constline , error, level , num_comp, num_splay , data);
     }
 
 
     cout << num_comp << " " << num_splay << endl;
 }
-void SymbolTable::LOOKUP(string& line , SplayTree& data){
-
+TreeNode* SymbolTable::findAll(const string& ele, const int&level , int&num_comp , int&num_splay , SplayTree&data){
+    TreeNode* varname = nullptr;
+    int is_lev = level;
+    while(true){
+        if(is_lev < 0) break;
+        varname = data.find(ele , is_lev, num_comp , num_splay);
+        if(!varname) --is_lev;
+        else break;
+    }
+    return varname;
 }
-void SymbolTable::PRINT(string& line , SplayTree& data){
+void SymbolTable::LOOKUP(string& line , const int& level, const string& error , SplayTree& data){
+    TreeNode* varname = nullptr;
+    int num_splay = 0;
+    int num_comp = 0;
+    int is_lev = level;
+
+    varname = findAll(line , level , num_comp , num_splay, data);
+    if(!varname) {
+        DestroySplayTree(data.returnRoot());
+        throw Undeclared(error);
+    }
+
+    cout << varname->key.levelOfBlock << endl;
+}
+void SymbolTable::PRINT(SplayTree& data){
+    TreeNode* root = data.returnRoot();
+    data.print(root);
+    cout << endl;
+}
+void SymbolTable::searchLevel(const string& varname , const int& level , SplayTree& data){
 
 }
 void SymbolTable::run(string filename){
@@ -451,7 +666,7 @@ void SymbolTable::run(string filename){
     file.open(filename , ios::in);
     while(!file.eof()){
         getline(file, line);
-        cSyntaxLine(line);
+        cSyntaxLine(line ,Database);
         error = line;
 
         string TYPE = cutString(line , " ");
@@ -463,15 +678,30 @@ void SymbolTable::run(string filename){
             ASSIGN(line , level, error, Database);
         }
         else if(TYPE == "LOOKUP"){
-
+            LOOKUP(line , level, error, Database);
+        }
+        else if(TYPE == "PRINT"){
+            PRINT(Database);
         }
         else if(TYPE == "BEGIN"){
-
+            ++level;
         }
         else if(TYPE == "END"){
-
+            if(level > 0){
+                bool a = 0;
+                while(true){
+                    bool a = Database._delete(level);
+                    if(!a) break;
+                }
+            }
+            --level;
+            if(level < 0) {
+                DestroySplayTree(Database.returnRoot());
+                throw UnknownBlock();
+            }
         }
     }
     file.close();
+    if(level > 0) throw UnclosedBlock(level);
     DestroySplayTree(Database.returnRoot());
 }

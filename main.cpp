@@ -47,6 +47,6 @@ int main(int argc, char **argv)
     string allowedCPP[] = {"SymbolTable.h"};
     validSubmittedFiles("SymbolTable.cpp", allowedCPP);
     //test(argv[1]);
-    test("testcase/test2.txt");
+    test("testcase/test1.txt");
     return 0;
 }

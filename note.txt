@@ -1,0 +1,12 @@
+num_comp = level tree + 1;
+
+
+sửa lại hàm find out;
+
+
+sửa lại delete
+
+
+sửa lại hàm ASSIGN
+
+sua ham find local

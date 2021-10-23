@@ -23,34 +23,42 @@ TreeNode* newTreeNode(TreeNode* root){
     return root;
 }
 void cSyntaxLine(const string &line , SplayTree &data){
-    int size_ = line.length();
-    int space = 0;
-    string syntax = line;
-    for(int i = 0; i < size_; i++){
-        if(line[i] == ' ') ++space;
+    bool correct = 0;
+
+    if(!correct){
+        regex re("INSERT ([a-z]\\w*) ((string|number)|(\\(((string|number)(,(string|number))*)*)\\)->(string|number)) (true|false)");
+        if(regex_match(line, re)) correct = 1;
+        else correct = 0;
     }
-    if(space > 3){
+    if(!correct){
+        regex re1("ASSIGN [a-z]\\w* ((\\d+)|('\\w*')|([a-z]\\w*)\\(.*\\)|([a-z]\\w*))");
+        if(regex_match(line, re1)) correct = 1;
+        else correct = 0;
+    }
+    if(!correct){
+        regex re2("BEGIN");
+        if(regex_match(line, re2)) correct = 1;
+        else correct = 0;
+    }
+    if(!correct){
+        regex re3("END");
+        if(regex_match(line, re3)) correct = 1;
+        else correct = 0;
+    }
+    if(!correct){
+        regex re4("PRINT");
+        if(regex_match(line, re4)) correct = 1;
+        else correct = 0;
+    }
+    if(!correct){
+        regex re5("LOOKUP ([a-z]\\w*)");
+        if(regex_match(line, re5)) correct = 1;
+        else correct = 0;
+    }
+
+    if(!correct){
         DestroySplayTree(data.returnRoot());
-        throw InvalidInstruction(line);
-    }
-    syntax = cutString(syntax , " ");
-    if(syntax == "INSERT"){
-        if(space != 3) {
-            DestroySplayTree(data.returnRoot());
-            throw InvalidInstruction(line);
-        }
-    }
-    else if(syntax == "ASSIGN"){
-        if(space != 2) {
-            DestroySplayTree(data.returnRoot());
-            throw InvalidInstruction(line);
-        }
-    }
-    else if(syntax == "PRINT" || syntax == "END" || syntax == "BEGIN" ){
-        if(space != 0) {
-            DestroySplayTree(data.returnRoot());
-            throw InvalidInstruction(line);
-        }
+        throw TypeMismatch(line);
     }
 }
 string cutString(string& line , const string& char_pos){
@@ -261,29 +269,24 @@ SplayTree::SplayTree(){
 SplayTree::SplayTree(TreeNode* rt){
     this->root = rt;
 }
-TreeNode* SplayTree::find(const string& element, const int& level , int& num_comp , int& num_splay){
+TreeNode* SplayTree::findLocal(const string& element, const int& level , int& num_comp ,int& num_splay){
     TreeNode* cur = this->root;
     TreeNode* ret = nullptr;
     while(cur){
         if(level < cur->key.levelOfBlock){
-            ++num_comp;
             cur = cur->left;
         }
         else if(level > cur->key.levelOfBlock){
-            ++num_comp;
             cur = cur->right;
         }
         else{
             if(element < cur->key.var){
-                ++num_comp;
                 cur = cur->left;
             }
             else if(element > cur->key.var){
-                ++num_comp;
                 cur = cur->right;
             }
             else{
-                ++num_comp;
                 ret = cur;
                 break;
             }
@@ -291,6 +294,7 @@ TreeNode* SplayTree::find(const string& element, const int& level , int& num_com
         }
     }
     //int num_splay = 0;
+    num_comp = numComp(ret, this->root);
     if(ret) splay(ret, num_splay);
     return ret;
 
@@ -345,14 +349,16 @@ bool SplayTree::_delete(const int& lev){
         M->right = R;
         R->parent = M;
     }
-    if(del->parent->left == del) del->parent->left = nullptr;
-    else if(del->parent->right == del) del->parent->right = nullptr;
+    if(del-> parent){
+        if(del->parent->left == del) del->parent->left = nullptr;
+        else if(del->parent->right == del) del->parent->right = nullptr;
+    }
     delete del;
     return 1;
 
 
 }
-void SplayTree::insert(Node* element , int& num_comp , int& num_splay , const string& error){
+void SplayTree::insert(Node* element, int&num_comp ,int& num_splay , const string& error){
     if(!root){
         root = new TreeNode(element);
         return;
@@ -360,22 +366,24 @@ void SplayTree::insert(Node* element , int& num_comp , int& num_splay , const st
     TreeNode* cur = this->root;
     while(cur){
         if(element->levelOfBlock < cur ->key.levelOfBlock){
-            ++num_comp;
             if(!cur->left){
-                TreeNode* newNode = new TreeNode(element);
-                cur->left = newNode;
-                newNode->parent = cur;
-                splay(newNode , num_splay);
+                TreeNode* newTNode = new TreeNode(element);
+                cur->left = newTNode;
+                newTNode->parent = cur;
+                num_comp += numComp(newTNode , this->root);
+                --num_comp;
+                splay(newTNode , num_splay);
                 return;
             }
             else cur = cur->left;
         }
         else if (element->levelOfBlock > cur ->key.levelOfBlock){
-            ++num_comp;
             if(!cur->right){
                 TreeNode* newTNode = new TreeNode(element);
                 cur->right = newTNode;
                 newTNode->parent = cur;
+                num_comp += numComp(newTNode , this->root);
+                --num_comp;
                 splay(newTNode , num_splay);
                 return;
             }
@@ -384,29 +392,30 @@ void SplayTree::insert(Node* element , int& num_comp , int& num_splay , const st
         else{
 
             if(element->var.compare(cur->key.var) < 0){
-                ++num_comp;
                 if(!cur->left){
                     TreeNode* newTNode = new TreeNode(element);
                     cur->left = newTNode;
                     newTNode->parent = cur;
+                    num_comp += numComp(newTNode , this->root);
+                    --num_comp;
                     splay(newTNode , num_splay);
                     return;
                 }
                 else cur = cur->left;
             }
             else if (element->var.compare(cur->key.var) > 0){
-                ++num_comp;
                 if(!cur->right){
                     TreeNode* newTNode = new TreeNode(element);
                     cur->right = newTNode;
                     newTNode->parent = cur;
+                    num_comp += numComp(newTNode , this->root);
+                    --num_comp;
                     splay(newTNode , num_splay);
                     return;
                 }
                 else cur = cur->right;
             }
             else{
-                ++num_comp;
                 DestroySplayTree(this->root);
                 throw Redeclared(error);
                 //++num_comp;
@@ -479,12 +488,12 @@ void SymbolTable::INSERT(string& line ,const int &level, const string & error, S
         else newNode->levelOfBlock = level;
     }
 
-    data.insert(newNode , num_comp , num_splay , error);
+    data.insert(newNode,num_comp ,num_splay , error);
     delete newNode;
 
     cout << num_comp << " " << num_splay << endl;
 }
-bool SymbolTable::functionType(const string& line , const string& error, const int& level ,int& num_comp , int& num_splay , SplayTree& data){
+bool SymbolTable::functionType(const string& line , const string& error, const int& level , int& num_comp, int& num_splay , SplayTree& data){
     
     string curline = line;
     string identifier_name = cutString(curline ," ");
@@ -498,16 +507,16 @@ bool SymbolTable::functionType(const string& line , const string& error, const i
         value.erase(0 , f);
     }
 
-    TreeNode* find = data.find(funcName , level , num_comp , num_splay);
+    TreeNode* find = data.findGlobal(funcName , level, num_comp ,num_splay);
 
     if(!find) {
         DestroySplayTree(data.returnRoot());
         throw Undeclared(error);
     }
 
-    string fVarName = value;
-    string fTypeName = find->key.type;
-    string funcTypeRet = find->key.funcTypeReturn;
+    string fVarName = value; //(1,1) (a,b)
+    string fTypeName = find->key.type; //(string,string) of function
+    string funcTypeRet = find->key.funcTypeReturn; //->string of function
 
     fVarName.erase(0 , 1);
     fVarName.pop_back();
@@ -535,8 +544,19 @@ bool SymbolTable::functionType(const string& line , const string& error, const i
 
             }
             else {
-                DestroySplayTree(data.returnRoot());
-                throw TypeMismatch(error);
+                TreeNode* TNvar1 = data.findGlobal(var , level , num_comp , num_splay);
+                if(TNvar1){
+                    if(TNvar1->key.type != type){
+                        DestroySplayTree(data.returnRoot());
+                        throw TypeMismatch(error);
+                    }
+                    fVarName.erase(0 , fvar + 1);
+                    fTypeName.erase(0 , ftype + 1);
+                }
+                else{
+                    DestroySplayTree(data.returnRoot());
+                    throw TypeMismatch(error);
+                }
             }
         }
         else if(fvar != string::npos && ftype == string::npos){
@@ -558,13 +578,24 @@ bool SymbolTable::functionType(const string& line , const string& error, const i
                 fTypeName.clear();
             }
             else {
-                DestroySplayTree(data.returnRoot());
-                throw TypeMismatch(error);
+                TreeNode* TNvar1 = data.findGlobal(fVarName , level , num_comp , num_splay);
+                if(TNvar1){
+                    if(TNvar1->key.type != fTypeName){
+                        DestroySplayTree(data.returnRoot());
+                        throw TypeMismatch(error);
+                    }
+                    fVarName.clear();
+                    fTypeName.clear();
+                }
+                else{
+                    DestroySplayTree(data.returnRoot());
+                    throw TypeMismatch(error);
+                }
             }
         }
     }
 
-    TreeNode* findX = data.find(identifier_name, level , num_comp , num_splay);
+    TreeNode* findX = data.findGlobal(identifier_name, level ,num_comp , num_splay);
     if(!findX) {
         DestroySplayTree(data.returnRoot());
         throw Undeclared(error);
@@ -580,6 +611,52 @@ bool SymbolTable::functionType(const string& line , const string& error, const i
 
     return 1;
 }
+TreeNode* SplayTree::findGlobal(const string& ele , const int& level ,int& num_comp , int& num_splay){
+    int lev = level;
+    TreeNode* ret = nullptr;
+    while(lev >= 0){
+        TreeNode* cRoot = this->root;
+        while(cRoot){
+            if(lev < cRoot->key.levelOfBlock) cRoot = cRoot->left;
+            else if (lev > cRoot->key.levelOfBlock) cRoot = cRoot->right;
+            else{
+                if(ele.compare(cRoot->key.var) < 0) cRoot = cRoot->left;
+                else if(ele.compare(cRoot->key.var) > 0) cRoot = cRoot->right;
+                else {
+                    ret = cRoot;
+                    break;
+                }
+            }
+        }
+        if(ret) break;
+        --lev;
+    }
+    if(ret) num_comp += numComp(ret, this->root);
+    if(ret) splay(ret, num_splay);
+    return ret;
+    
+}
+int SplayTree::numComp(TreeNode* node , TreeNode* root){
+    if(!root) return 0;
+    if(node->key.levelOfBlock < root->key.levelOfBlock){
+        return 1 + numComp(node , root->left);
+    }
+    else if(node->key.levelOfBlock > root->key.levelOfBlock){
+        return 1 + numComp(node, root->right);
+    }
+    else{
+        if (node->key.var < root->key.var){
+            return 1 + numComp(node, root->left);
+        }
+        else if(node->key.var > root->key.var){
+            return 1 + numComp(node, root->right);
+        }
+        else{
+            return 1;
+        }
+    }
+    return 1;
+}
 void SymbolTable::ASSIGN(string& line, const int& level, const string& error , SplayTree& data){
     string constline =  line;
     string identifier_name = cutString(line ," ");
@@ -592,47 +669,43 @@ void SymbolTable::ASSIGN(string& line, const int& level, const string& error , S
     int num_splay = 0;
 
     if(value.back() != ')'){
-        TreeNode* is_found = data.find(identifier_name, level , num_comp , num_splay);
-        if(!is_found) {
-            is_found = findAll(identifier_name , level , num_comp , num_splay , data);
-            if(!is_found) {
+        if(!const_string(value) && !const_number(value)){
+            TreeNode* findX = data.findGlobal(value , level , num_comp , num_splay);
+            if(!findX){
                 DestroySplayTree(data.returnRoot());
                 throw Undeclared(error);
+            }
+            TreeNode* var = data.findGlobal(identifier_name , level , num_comp , num_splay);
+            if(!var){
+                DestroySplayTree(data.returnRoot());
+                throw Undeclared(error);
+            }
+            if(var->key.type == findX->key.type) var->key.ndata = findX->key.ndata;
+            else{
+                DestroySplayTree(data.returnRoot());
+                throw TypeMismatch(error);
             }
         }
-
-        if(is_found->key.type == "string" && const_string(value)) is_found->key.ndata = value;
-        else if(is_found->key.type == "number" && const_number(value)) is_found->key.ndata = value;
         else{
-
-            TreeNode* var2 = findAll(value , level , num_comp , num_splay , data);
-            if(!var2) {
+            TreeNode* var = data.findGlobal(identifier_name , level , num_comp , num_splay);
+            if(!var){
                 DestroySplayTree(data.returnRoot());
                 throw Undeclared(error);
             }
+            if(var->key.type == "string" && const_string(value)) var->key.ndata = value;
+            else if(var->key.type == "number" && const_number(value)) var->key.ndata = value;
             else{
-                if(is_found->key.type == "string" && var2->key.type == "string") is_found->key.ndata = var2->key.ndata;
-                else if(is_found->key.type == "number" && var2->key.type == "number") is_found->key.ndata = var2->key.ndata;
+                DestroySplayTree(data.returnRoot());
+                throw TypeMismatch(error);
             }
         }
     }
     else{
-        functionType(constline , error, level , num_comp, num_splay , data);
+        functionType(constline , error, level ,num_comp , num_splay , data);
     }
 
 
     cout << num_comp << " " << num_splay << endl;
-}
-TreeNode* SymbolTable::findAll(const string& ele, const int&level , int&num_comp , int&num_splay , SplayTree&data){
-    TreeNode* varname = nullptr;
-    int is_lev = level;
-    while(true){
-        if(is_lev < 0) break;
-        varname = data.find(ele , is_lev, num_comp , num_splay);
-        if(!varname) --is_lev;
-        else break;
-    }
-    return varname;
 }
 void SymbolTable::LOOKUP(string& line , const int& level, const string& error , SplayTree& data){
     TreeNode* varname = nullptr;
@@ -640,7 +713,7 @@ void SymbolTable::LOOKUP(string& line , const int& level, const string& error , 
     int num_comp = 0;
     int is_lev = level;
 
-    varname = findAll(line , level , num_comp , num_splay, data);
+    varname = data.findGlobal(line, level , num_comp ,num_splay);
     if(!varname) {
         DestroySplayTree(data.returnRoot());
         throw Undeclared(error);

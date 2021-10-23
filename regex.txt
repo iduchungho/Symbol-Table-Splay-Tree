@@ -1,0 +1,2 @@
+func : "(\(\)|(\((string|number)(,(string|number))+\)))->(string|number)"
+syntax: "((INSERT (([a-z]\w*)|([A-Z]\w*)) (string|number) (true|false)))|(ASSIGN ([a-z]\w*|[A-Z]\w*) (([a-z]\w*|[A-Z]\w*)|\'\w*\'|\d+))|(LOOKUP ([a-z]\w*|[A-Z]\w*))|BEGIN|END|PRINT"

@@ -33,6 +33,18 @@ struct TreeNode{
     }
 
 };
+class queueString{
+public:
+    string que[1000];
+    int level;
+    queueString(){
+        level = 0;
+    }
+    void __pop();
+    void __push(const string&);
+    string __front();
+    void __clear();
+};
 class SplayTree{
 private:
     TreeNode* root;
@@ -46,9 +58,9 @@ public:
     SplayTree();
     SplayTree(TreeNode*);
     void inpRoot(TreeNode*);
-    void print(TreeNode* , bool);
+    void print(TreeNode* , bool&);
     void insert(Node*, int& , int& , const string&);
-    bool _delete(const int&);
+    bool _delete(const string& , const int&);
     TreeNode* returnRoot();
     TreeNode* findLocal(const string& , const int& , int& , int&);
     TreeNode* find(const int&);
@@ -61,17 +73,18 @@ class SymbolTable
 public:
     SymbolTable() {}
     void run(string filename);
-    void INSERT(string & ,const int & ,const string &, SplayTree&);
+    void INSERT(string & ,const int & ,const string &, SplayTree& , queueString&);
     void ASSIGN(string & , const int&  ,const string &, SplayTree&);
     void LOOKUP(string & , const int&  ,const string &, SplayTree&);
     void PRINT(SplayTree&);
     bool functionType(const string & , const string& , const int& , int& , int&, SplayTree&);
-    void searchLevel(const string& , const int& , SplayTree&);
+    //void searchLevel(const string& , const int& , SplayTree&);
 };
 void DestroySplayTree(TreeNode*);
 void cSyntaxLine(const string & , SplayTree&);
 void cAphabetSyntax(const string & ,const string & , SplayTree&);
 void preOrder(TreeNode* , TreeNode*,const string&);
+void __delete(queueString& , const int& , SplayTree&);
 bool const_number(const string &);
 bool const_string(const string &);
 string cutString(string &, const string&);

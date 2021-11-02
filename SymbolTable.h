@@ -33,11 +33,11 @@ struct TreeNode{
     }
 
 };
-class queueString{
+class queString{
 public:
     string que[1000];
     int level;
-    queueString(){
+    queString(){
         level = 0;
     }
     void __pop();
@@ -73,7 +73,7 @@ class SymbolTable
 public:
     SymbolTable() {}
     void run(string filename);
-    void INSERT(string & ,const int & ,const string &, SplayTree& , queueString&);
+    void INSERT(string & ,const int & ,const string &, SplayTree& , queString&);
     void ASSIGN(string & , const int&  ,const string &, SplayTree&);
     void LOOKUP(string & , const int&  ,const string &, SplayTree&);
     void PRINT(SplayTree&);
@@ -84,7 +84,7 @@ void DestroySplayTree(TreeNode*);
 void cSyntaxLine(const string & , SplayTree&);
 void cAphabetSyntax(const string & ,const string & , SplayTree&);
 void preOrder(TreeNode* , TreeNode*,const string&);
-void __delete(queueString& , const int& , SplayTree&);
+void __delete(queString& , const int& , SplayTree&);
 bool const_number(const string &);
 bool const_string(const string &);
 string cutString(string &, const string&);

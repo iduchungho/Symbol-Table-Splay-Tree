@@ -1,7 +1,7 @@
-num_comp = level tree + 1;
 
 
-sửa lại hàm find out;
+
+
 
 
 sửa lại delete
@@ -9,4 +9,33 @@ sửa lại delete
 
 sửa lại hàm ASSIGN
 
-sua ham find local
+
+
+sửa lại assign phần functionType
+
+sum(sfafha,safasf) = Unclared !!!!!
+
+
+
+                TreeNode* TNvar1 = data.findGlobal(var , level , num_comp , num_splay);
+                if(TNvar1){
+                    if(TNvar1->key.type != type){
+                        DestroySplayTree(data.returnRoot());
+                        throw TypeMismatch(error);
+                    }
+                    fVarName.erase(0 , fvar + 1);
+                    fTypeName.erase(0 , ftype + 1);
+                }
+                else{
+                    DestroySplayTree(data.returnRoot());
+                    throw TypeMismatch(error);
+                }
+
+
+
+dùng queue string để xóa
+
+
+sai num_comp đặc biệt phần INSERT
+
+lỗi type mismatch và Unclared phần ASSIGN

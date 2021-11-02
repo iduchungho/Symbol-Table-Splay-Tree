@@ -123,9 +123,9 @@ void SplayTree::zig(TreeNode* current){
 
     TreeNode* p = current->parent;
     if(p->left == current){
-        TreeNode* A = current->left;
+        //TreeNode* A = current->left;
         TreeNode* B = current->right;
-        TreeNode* C = p -> right;
+        //TreeNode* C = p -> right;
 
         current->parent = nullptr;
         current->right = p;
@@ -135,9 +135,9 @@ void SplayTree::zig(TreeNode* current){
         if(B) B->parent = p;
     }
     else{
-        TreeNode* A = p->left;
+        //TreeNode* A = p->left;
         TreeNode* B = current->left;
-        TreeNode* C = current->right;
+        //TreeNode* C = current->right;
 
         current->parent = nullptr;
         current->left = p;
@@ -153,10 +153,10 @@ void SplayTree::zig_zag(TreeNode* current){
     TreeNode* par = current->parent;
     TreeNode* grand = par->parent;
     if(par -> right == current){ // zig zag
-        TreeNode* A = par->left;
+        //TreeNode* A = par->left;
         TreeNode* B = current->left;
         TreeNode* C = current->right;
-        TreeNode* D = grand->right;
+        //TreeNode* D = grand->right;
 
         current -> parent = grand -> parent;
         current -> left = par;
@@ -178,10 +178,10 @@ void SplayTree::zig_zag(TreeNode* current){
 
     }
     else{ // zag zig
-        TreeNode* A = grand->left;
+        //TreeNode* A = grand->left;
         TreeNode* B = current->left;
         TreeNode* C = current->right;
-        TreeNode* D = par->right;
+        //TreeNode* D = par->right;
 
         current -> parent = grand->parent;
         current -> left = grand;
@@ -207,10 +207,10 @@ void SplayTree::zig_zig(TreeNode* current){
     TreeNode* par = current->parent;
     TreeNode* grand = par->parent;
     if(par -> left == current){ // zig zig
-        TreeNode* A = current->left;
+        //TreeNode* A = current->left;
         TreeNode* B = current->right;
         TreeNode* C = par->right;
-        TreeNode* D = grand->right;
+        //TreeNode* D = grand->right;
 
         current -> parent = grand->parent;
         current -> right = par;
@@ -232,10 +232,10 @@ void SplayTree::zig_zig(TreeNode* current){
 
     }
     else{ // zag zag
-        TreeNode* A = grand->left;
+        //TreeNode* A = grand->left;
         TreeNode* B = par->left;
         TreeNode* C = current->left;
-        TreeNode* D = current->right;
+        //TreeNode* D = current->right;
 
         current -> parent = grand->parent;
         current -> left = par;
@@ -467,11 +467,12 @@ void SplayTree::insert(Node* element, int&num_comp ,int& num_splay , const strin
                 else cur = cur->right;
             }
             else{
+                delete element;
                 DestroySplayTree(this->root);
                 throw Redeclared(error);
                 //++num_comp;
-                splay(cur , num_splay);
-                return;
+                //splay(cur , num_splay);
+                //return;
             }
         }
     }
@@ -498,7 +499,7 @@ void SplayTree::splay(TreeNode* cur , int& num_splay){
     if(cur != this->root) ++num_splay;
     this->root = cur;
 }
-void SymbolTable::INSERT(string& line ,const int &level, const string & error, SplayTree& data , queueString& que){
+void SymbolTable::INSERT(string& line ,const int &level, const string & error, SplayTree& data , queString& que){
     string identifier_name = cutString(line ," ");
     string type = cutString(line ," ");// check syntax
     string _static = cutString(line ," "); // check syntax
@@ -638,13 +639,17 @@ bool SymbolTable::functionType(const string& line , const string& error, const i
                     throw Undeclared(error);
                 }
             }
-            if(const_string(fVarName) && fTypeName== "string") {
+            else if(const_string(fVarName) && fTypeName== "string") {
                 fVarName.clear();
                 fTypeName.clear();
             }
             else if(const_number(fVarName) && fTypeName == "number") {
                 fVarName.clear();
                 fTypeName.clear();
+            }
+            else{
+                DestroySplayTree(data.returnRoot());
+                throw TypeMismatch(error);
             }
         }
     }
@@ -719,7 +724,7 @@ void SymbolTable::LOOKUP(string& line , const int& level, const string& error , 
     TreeNode* varname = nullptr;
     int num_splay = 0;
     int num_comp = 0;
-    int is_lev = level;
+    //int is_lev = level;
 
     varname = data.findGlobal(line, level , num_comp ,num_splay);
     if(!varname) {
@@ -735,12 +740,12 @@ void SymbolTable::PRINT(SplayTree& data){
     data.print(root , f);
     if(f) cout << endl;
 }
-void queueString::__push(const string &ele){
+void queString::__push(const string &ele){
     // [0]abc [0]xyz [1]dmy [1]
     que[level] += ele;
     que[level] += " ";
 }
-void queueString::__pop(){
+void queString::__pop(){
     size_t f = que[level].find(" ");
     if(f != string::npos){
         que[level].erase(0 , f + 1);
@@ -749,7 +754,7 @@ void queueString::__pop(){
         que[level].clear();
     }
 }
-string queueString::__front(){
+string queString::__front(){
     size_t f = que[level].find(" ");
     if(f != string::npos){
         string ret = que[level].substr(0 ,f);
@@ -759,10 +764,10 @@ string queueString::__front(){
         return que[level];
     }
 }
-void queueString::__clear(){
+void queString::__clear(){
     que[level].clear();
 }
-void __delete(queueString& que, const int& level , SplayTree& data){
+void __delete(queString& que, const int& level , SplayTree& data){
 
     bool a = 0;
     while(true){
@@ -781,7 +786,7 @@ void __delete(queueString& que, const int& level , SplayTree& data){
 }
 void SymbolTable::run(string filename){
     SplayTree Database;
-    queueString que;
+    queString que;
     string line;
     fstream file;
     Database.inpRoot(nullptr); // root = new TreeNode; root->key(abc ,xyz ,gmt);

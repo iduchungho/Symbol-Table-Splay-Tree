@@ -59,7 +59,7 @@ void cSyntaxLine(const string &line , SplayTree &data){
 
     if(!correct){
         DestroySplayTree(data.returnRoot());
-        throw InvalidDeclaration(line);
+        throw InvalidInstruction(line);
     }
 }
 bool const_number(const string &number){
